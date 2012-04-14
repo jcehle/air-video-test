@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Video Test" basedir="../" default="01. [package]">
+
+	<!-- user.properties -->
+	<available file="${basedir}/build/user.properties" property="userPropertiesExist" />
+	<fail unless="userPropertiesExist" message="Please rename the user.properties.default to user.properties and add it to the SVN or GIT ignore list" />
+	<property file="${basedir}/build/user.properties"/>
+	<echo>${ant.project.name}</echo>
+	
+	<!-- PROJECT SETTINGS -->
+	<property file="${basedir}/build/build.properties" />
+	
+	<!-- uses ant-contrib (http://ant-contrib.sourceforge.net) for some tasks -->
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${libs.dir}/ant/ant-contrib.jar" />
+	
+	<!-- check to see if we have a certificate -->
+	<available file="${certificate}" property="hasCertificate" />
+	
+
+	<target name="Make certificate" description="create self-signed code signing cert.  skips if there is already one there...">
+			<if>
+				<equals arg1="${hasCertificate}" arg2="true"/>
+				<then>
+					<echo>Already have cert, not generating another one...</echo>
+				</then>
+				<else>
+					<echo>No certificate found, generate a self-signed one.</echo>
+					<java jar="${flex.home}/${adt}" fork="true" failonerror="true">
+						<arg value="-certificate" />
+							
+						<arg value="-cn" />
+						<arg value="${cert.name}" />
+							
+						<arg value="-c" />
+						<arg value="${cert.country}" />
+							
+						<arg value="1024-RSA" />
+							
+						<arg value="${certificate}" />
+							
+						<arg value="${cert.pass}" />
+					</java>
+				</else>
+			</if>
+		</target>
+
+	<target name="01. [package]" depends="Make certificate">
+		
+		<mkdir dir="${publish.dir}" />
+		
+		<java jar="${flex.home}/${adt}" fork="true" failonerror="true">
+			<arg value="-package" />
+
+			<!-- SIGNING_OPTIONS -->
+			<arg value="-storetype" />
+			<arg value="pkcs12" />
+			<arg value="-keystore" />
+			<arg value="${certificate}" />
+			<arg value="-storepass" />
+			<arg value="${cert.pass}" />
+		
+			<!-- package to .air file -->
+			<arg value="-target" />
+			<arg value="air" />
+
+			<!-- Name Of File To Create-->
+			<arg value="${publish.air}" />
+
+			<!-- App Descriptor-->
+			<arg value="${application.descriptor}" />
+
+			<!-- Files To Package -->
+			<arg value="-C" />
+			<arg value="${deploy.dir}/" />
+			<arg value="${deploy.swf}" />
+
+			<!-- add more assets here -->
+			<arg value="-C" />
+			<arg value="${deploy.dir}/" />
+			<arg value="assets" />
+		</java>
+
+		
+	</target>
+
+</project>
