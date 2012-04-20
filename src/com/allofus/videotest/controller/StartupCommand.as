@@ -32,13 +32,17 @@ package com.allofus.videotest.controller
 				prefsService.writePreferences(Settings.SETTINGS_URL, prefsXML.toXMLString());
 			}
 			
-			var mainView:VideoTest = contextView as VideoTest;
 			var settingsView:SettingsView = new SettingsView();
-			var videoView:VideoView = new VideoView();
-			
 			var vidURL:String = prefsXML..Text.(@id == "videoPathField").@text;
 			logger.debug("set video URL: " + vidURL);
 			settingsView.videoURL = vidURL;
+			
+			
+			
+			var mainView:VideoTest = contextView as VideoTest;
+			var videoView:VideoView = new VideoView();
+			//var videoView:LoopVideoPlayer = new LoopVideoPlayer();
+			
 			
 			
 			mainView.settingsLayer.addChild(settingsView);

@@ -23,7 +23,6 @@ package com.allofus.videotest.view
 		{
 			player = new VideoPlayer(Settings.WIDTH, Settings.HEIGHT);
 			player.ready.add(onPlayerReady);
-//			player.finished.add(onFinished);
 			addChild(player);
 			
 			var label:Label = new Label(this, 15, 200, "MAIN VIDEO VIEW");
@@ -38,11 +37,6 @@ package com.allofus.videotest.view
 		public function queue(url:String):void
 		{
 			player.queueVideo(url);
-		}
-		
-		private function onFinished() : void
-		{
-			player.pause();
 		}
 		
 		public function reset():void

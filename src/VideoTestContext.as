@@ -1,5 +1,7 @@
 package
 {
+	import com.allofus.videotest.view.LoopVideoPlayerMediator;
+	import com.allofus.videotest.view.LoopVideoPlayer;
 	import com.allofus.videotest.controller.StartupCommand;
 	import com.allofus.videotest.controller.WritePreferencesCommand;
 	import com.allofus.videotest.service.PreferencesService;
@@ -46,6 +48,7 @@ package
 			//=== MEDIATE VIEW COMPONENTS ===
 			mediatorMap.mapView(SettingsView, SettingsViewMediator);
 			mediatorMap.mapView(VideoView, VideoViewMediator);
+			mediatorMap.mapView(LoopVideoPlayer, LoopVideoPlayerMediator);
 			
 			commandMap.execute(StartupCommand);
 			

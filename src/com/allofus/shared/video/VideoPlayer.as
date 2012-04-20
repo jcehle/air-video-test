@@ -20,7 +20,7 @@ package com.allofus.shared.video
 	public class VideoPlayer extends Sprite
 	{
 		private static const logger:ILogger = GetLogger.qualifiedName( VideoPlayer );
-		public static var VID_PLAYER_ID : int = 0;
+		public static var VID_PLAYER_ID : int = 1;
 		
 		
 		private var _loop:Boolean = true;
@@ -115,6 +115,7 @@ package com.allofus.shared.video
 		
 		private function initStream():void
 		{
+			logger.debug("player: " + _id + "initStream()");
 			killStream();
 			stream = new NetStream(connection);
 			stream.addEventListener(NetStatusEvent.NET_STATUS, streamStatus);
@@ -136,6 +137,7 @@ package com.allofus.shared.video
 		
 		protected function initVideo():void
 		{
+			logger.debug("player: " + _id + "initVideo(): " + _streamURL);
 			killVideo();
 			video = new Video(_playerWidth, _playerHeight);
 			video.attachNetStream(stream);
@@ -143,6 +145,7 @@ package com.allofus.shared.video
 			
 			if(_streamURL)
 			{
+				logger.debug("queue up the video:" + _streamURL);
 				queueVideo(_streamURL, _autoplay);
 			}
 			
@@ -166,11 +169,14 @@ package com.allofus.shared.video
 			switch (event.info.code)
 			{
 				case "NetStream.Play.Stop":
-					logger.debug("end of video file reached.");
+					logger.info("video: " + _id + " reached the end of video file");
 					if(_loop)
 						replay();
 					else
+					{
+						logger.info("video: " + _id + " dispatch finished, numListeners: " + finished.numListeners );
 						finished.dispatch(_id);
+					}
 					break;
 				
 				case "NetStream.Buffer.Empty":
@@ -198,11 +204,11 @@ package com.allofus.shared.video
 				case "NetStream.Unpause.Notify":
 				case "NetStream.Unpublish.Success":
 				case "SharedObject.Flush.Success":
-					logger.debug("NetStream event: " + event.info.code);
+					logger.debug("video: " + _id + " NetStream event: " + event.info.code);
 					break;
 				
 				case "NetStream.Play.InsufficientBW":
-					logger.warn("NetStream event: " + event.info.code + ", read more here: http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/NetStatusEvent.html");
+					logger.warn("video: " + _id + " NetStream event: " + event.info.code + ", read more here: http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/NetStatusEvent.html");
 					break;
 				
 				case "NetStream.Connect.Failed":
@@ -219,11 +225,11 @@ package com.allofus.shared.video
 				case "SharedObject.BadPersistence":
 				case "SharedObject.Flush.Failed":
 				case "SharedObject.UriMismatch":
-					logger.error("NetStream (error) event: " + event.info.code + ", read more here: http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/NetStatusEvent.html");
+					logger.error("video: " + _id + " NetStream (error) event: " + event.info.code + ", read more here: http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/NetStatusEvent.html");
 					break;
 					
 				default:
-					logger.debug("NetStream event: " + event.info.code);
+					logger.debug("video: " + _id + " NetStream event: " + event.info.code);
 			}
 		}
 
@@ -231,12 +237,11 @@ package com.allofus.shared.video
 		
 		public function queueVideo(url : String, autoplay:Boolean = true) : void
 		{
-			logger.debug("playVideo: " + url);
+			logger.debug("queueVideo: " + url);
 			_streamURL = url;
 			_autoplay = autoplay;
 			if(stream)
 			{
-				stream.close();
 				stream.play(_streamURL);
 				
 				if(autoplay)
@@ -247,23 +252,6 @@ package com.allofus.shared.video
 			else
 			{
 				logger.warn("no stream to queue video!");
-			}
-		}
-		
-		public function playVideo(url:String):void
-		{
-			logger.debug("playVideo: " + url);
-			_streamURL = url;
-			_autoplay = true;
-			if(stream)
-			{
-				stream.close();
-				stream.play(_streamURL);
-				stream.resume();
-			}
-			else
-			{
-				logger.warn("playVideo() has no stream");
 			}
 		}
 		
@@ -282,7 +270,8 @@ package com.allofus.shared.video
 		public function replay() : void
 		{
 			logger.info("replay video: " + _id);
-			playVideo(_streamURL);
+			stream.seek(0);
+			stream.resume();
 		}
 		
 		public function reset() : void
@@ -369,7 +358,7 @@ package com.allofus.shared.video
 		{
 			_playerHeight = value;
 			if(video)
-				video.height = _playerHeight
+				video.height = _playerHeight;
 		}
 		
 		public function dispose() : void
@@ -384,8 +373,12 @@ package com.allofus.shared.video
 			killVideo();
 			killStream();
 			killConnection();
+			
+			ready.removeAll();
+			finished.removeAll();
 
-			video = null;
+			ready = null;
+			finished = null;
 		}
 
 		public function get streamURL() : String
@@ -396,6 +389,11 @@ package com.allofus.shared.video
 		public function set streamURL(streamURL : String) : void
 		{
 			_streamURL = streamURL;
+		}
+
+		public function get id() : int
+		{
+			return _id;
 		}
 	}
 }
