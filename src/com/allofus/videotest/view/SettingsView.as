@@ -61,7 +61,7 @@ package com.allofus.videotest.view
 				initView();
 			}
 			
-			visible = false;
+			//visible = false;
 		}
 
 		private function initView(event : Event = null) : void
